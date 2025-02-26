@@ -1,0 +1,24 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: node-exporter-vm
+  namespace: monitoring
+
+spec:
+  ec2SDConfigs:
+    - region: us-east-1  # AWS region for EC2 instances
+      accessKey:
+        key: accessKey  # Key for the access key stored in the secret
+        name: aws-api-access  # Secret name containing the access key
+      secretKey:
+        key: secretKey  # Key for the secret key stored in the secret
+        name: aws-api-access  # Secret name containing the secret key
+      filters:
+        - name: "tag:monitoring/app.leena.ai/cluster"  # EC2 tag filter
+          values:
+            - "staging-eks"  # Filter value for the tag
+      port: 9100  # Default port for node-exporter
+  relabelings:
+    - sourceLabels: [__meta_ec2_public_ip]  # Use public IP of the EC2 instance
+      replacement: ${1}:9100  # Replace with port 9100 for node-exporter
+      targetLabel: __address__  # Update the address to be scraped
